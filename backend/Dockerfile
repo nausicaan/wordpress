@@ -3,7 +3,7 @@ FROM $DOCKER_REGISTRY/wordpress:php8.0-apache
 
 ENV DOCKERIZE_VERSION v0.6.1
 
-ARG GITHUB_REPO=https://github.com/WordPress/wordpress-develop/
+ARG GITHUB_REPO=https://github.com/WordPress/wordpress-develop
 ARG GITHUB_TAG=6.1.1
 
 # install the PHP extensions we need
