@@ -1,0 +1,168 @@
+---
+kind: Template
+apiVersion: template.openshift.io/v1
+metadata:
+  name: gdx-wordpress-postgresql-dc
+parameters:
+  - description: The short-name of the Site Service, lower-case with hyphen.
+    displayName: Site Name
+    name: SITE_NAME
+    required: true
+    value: mds
+  - description: Maximum amount of memory the container can use.
+    displayName: Memory Limit
+    name: MEMORY_LIMIT
+    required: true
+    value: 512Mi
+  - description: Password for the PostgreSQL connection user.
+    displayName: PostgreSQL Connection Password
+    from: "[a-zA-Z0-9]{16}"
+    generate: expression
+    name: POSTGRESQL_PASSWORD
+    required: true
+  - description: Volume space available for data, e.g. 512Mi, 2Gi.
+    displayName: Database Volume Capacity
+    name: DB_VOLUME_CAPACITY
+    required: true
+    value: 250Mi
+objects:
+  - kind: Secret
+    apiVersion: v1
+    metadata:
+      name: "${SITE_NAME}-wordpress-postgresql"
+      labels:
+        app: "${SITE_NAME}-wordpress"
+      annotations:
+        description: Database credentials and name.
+        template.openshift.io/expose-database_name: "{.data['database-name']}"
+        template.openshift.io/expose-password: "{.data['database-password']}"
+        template.openshift.io/expose-username: "{.data['database-user']}"
+    stringData:
+      database-name: "${SITE_NAME}"
+      database-password: "${POSTGRESQL_PASSWORD}"
+      database-user: "${SITE_NAME}"
+  - kind: PersistentVolumeClaim
+    apiVersion: v1
+    metadata:
+      name: "${SITE_NAME}-wordpress-postgresql"
+      labels:
+        app: "${SITE_NAME}-wordpress"
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: "${DB_VOLUME_CAPACITY}"
+      storageClassName: netapp-block-standard
+  - kind: DeploymentConfig
+    apiVersion: v1
+    metadata:
+      name: "${SITE_NAME}-wordpress-postgresql"
+      labels:
+        app: "${SITE_NAME}-wordpress"
+      annotations: {}
+    spec:
+      strategy:
+        type: Recreate
+        recreateParams:
+          timeoutSeconds: 600
+        resources: {}
+        activeDeadlineSeconds: 21600
+      triggers:
+        - type: ConfigChange
+        - type: ImageChange
+          imageChangeParams:
+            automatic: true
+            containerNames:
+              - "${SITE_NAME}-wordpress-postgresql"
+            from:
+              kind: ImageStreamTag
+              namespace: openshift
+              name: postgresql:12
+      replicas: 1
+      revisionHistoryLimit: 10
+      test: false
+      selector:
+        app: "${SITE_NAME}-wordpress"
+        deploymentconfig: "${SITE_NAME}-wordpress-postgresql"
+      template:
+        metadata:
+          creationTimestamp:
+          labels:
+            app: "${SITE_NAME}-wordpress"
+            deploymentconfig: "${SITE_NAME}-wordpress-postgresql"
+          annotations: {}
+        spec:
+          volumes:
+            - name: postgresql-volume
+              persistentVolumeClaim:
+                claimName: "${SITE_NAME}-wordpress-postgresql"
+          containers:
+            - name: "${SITE_NAME}-wordpress-postgresql"
+              image: " "
+              ports:
+                - containerPort: 5432
+                  protocol: TCP
+              env:
+                - name: POSTGRESQL_DATABASE
+                  valueFrom:
+                    secretKeyRef:
+                      name: "${SITE_NAME}-wordpress-postgresql"
+                      key: database-name
+                - name: POSTGRESQL_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: "${SITE_NAME}-wordpress-postgresql"
+                      key: database-password
+                - name: POSTGRESQL_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: "${SITE_NAME}-wordpress-postgresql"
+                      key: database-user
+              resources:
+                limits:
+                  memory: "${MEMORY_LIMIT}"
+              volumeMounts:
+                - name: postgresql-volume
+                  mountPath: "/var/lib/pgsql/data"
+              livenessProbe:
+                initialDelaySeconds: 30
+                tcpSocket:
+                  port: 5432
+                timeoutSeconds: 1
+              readinessProbe:
+                exec:
+                  command:
+                    - "/bin/bash"
+                    - "-c"
+                    - pg_isready -h localhost -p 5432
+                initialDelaySeconds: 20
+                timeoutSeconds: 1
+              terminationMessagePath: "/dev/termination-log"
+              terminationMessagePolicy: File
+              imagePullPolicy: Always
+          restartPolicy: Always
+          terminationGracePeriodSeconds: 30
+          dnsPolicy: ClusterFirst
+          securityContext: {}
+          schedulerName: default-scheduler
+  - kind: Service
+    apiVersion: v1
+    metadata:
+      name: "${SITE_NAME}-wordpress-postgresql"
+      labels:
+        app: "${SITE_NAME}-wordpress"
+      annotations: {}
+    spec:
+      ports:
+        - name: 5432-tcp
+          protocol: TCP
+          port: 5432
+          targetPort: 5432
+      selector:
+        app: "${SITE_NAME}-wordpress"
+        deploymentconfig: "${SITE_NAME}-wordpress-postgresql"
+      type: ClusterIP
+      sessionAffinity: None
+    status:
+      loadBalancer: {}

@@ -1,0 +1,318 @@
+---
+kind: Template
+apiVersion: template.openshift.io/v1
+metadata:
+  name: gdx-wordpress-app-dc
+parameters:
+  - description: The OpenShift Namespace where the ImageStream resides.
+    displayName: Namespace
+    name: IS_NAMESPACE
+    value: c329bd-tools
+  - description: The OpenShift ImageStream name.
+    displayName: Image Stream
+    name: IS_NAME
+    value: gdx-wordpress
+  - description: Version of wordpress image to be used (e.g. v.3.16.1).
+    displayName: Version of wordpress
+    name: IS_VERSION
+    value: 5.4.15
+  - description: The short-name of the WordPress Service, lower-case with hyphen.
+    displayName: wordpress Acronym
+    name: SITE_NAME
+    required: true
+    value: gdx
+  - description: The disk space reserved for wordpress uploads.
+    displayName: Upload Folder size
+    name: UPLOAD_FOLDER_CAPACITY
+    value: 250Mi
+  - description: The account name for the default wordpress Administrator.
+    displayName: Administrator Account Name
+    name: ADMIN_USER
+    value: admin
+  - description: The descriptive name for the default wordpress Administrator.
+    displayName: Administrator Display Name
+    name: ADMIN_NAME
+    value: Administrator
+  - description: Password for the default wordpress Administrator.
+    displayName: Administrator Password
+    from: "[a-zA-Z0-9]{16}"
+    generate: expression
+    name: ADMIN_PASSWORD
+    required: true
+  - description: The email address for the default wordpress Administrator.
+    displayName: Administrator Email Address
+    name: ADMIN_EMAIL
+    required: true
+  - description: The type of relational database (pgsql / mysql ); currently only pgsql is supported
+    displayName: Database Type
+    name: DB_TYPE
+    value: pgsql
+  - name: CPU_LIMIT
+    value: 200m
+  - name: MEMORY_LIMIT
+    value: 512Mi
+  - name: CPU_REQUEST
+    value: 50m
+  - name: MEMORY_REQUEST
+    value: 200Mi
+  - name: REPLICA_MIN
+    value: "2"
+  - name: REPLICA_MAX
+    value: "3"
+objects:
+  - kind: Secret
+    apiVersion: v1
+    metadata:
+      name: "${SITE_NAME}-wordpress-app"
+      labels:
+        app: "${SITE_NAME}-wordpress"
+      annotations:
+        description: Application Administrator credentials and name.
+        template.openshift.io/expose-admin_username: "{.data['admin-user']}"
+        template.openshift.io/expose-admin_name: "{.data['admin-name']}"
+        template.openshift.io/expose-admin_password: "{.data['admin-password']}"
+        template.openshift.io/expose-admin_email: "{.data['admin-email']}"
+    stringData:
+      admin-user: "${ADMIN_USER}"
+      admin-name: "${ADMIN_NAME}"
+      admin-password: "${ADMIN_PASSWORD}"
+      admin-email: "${ADMIN_EMAIL}"
+  - kind: PersistentVolumeClaim
+    apiVersion: v1
+    metadata:
+      name: "${SITE_NAME}-wordpress-app-upload"
+      labels:
+        app: "${SITE_NAME}-wordpress"
+    spec:
+      accessModes:
+        - ReadWriteMany
+      resources:
+        requests:
+          storage: "${UPLOAD_FOLDER_CAPACITY}"
+      storageClassName: netapp-file-standard
+  - kind: PersistentVolumeClaim
+    apiVersion: v1
+    metadata:
+      name: "${SITE_NAME}-wordpress-app-config"
+      labels:
+        app: "${SITE_NAME}-wordpress"
+    spec:
+      accessModes:
+        - ReadWriteMany
+      resources:
+        requests:
+          storage: 128Mi
+      storageClassName: netapp-file-standard
+  - kind: PersistentVolumeClaim
+    apiVersion: v1
+    metadata:
+      name: "${SITE_NAME}-wordpress-app-plugins"
+      labels:
+        app: "${SITE_NAME}-wordpress"
+    spec:
+      accessModes:
+        - ReadWriteMany
+      resources:
+        requests:
+          storage: 128Mi
+      storageClassName: netapp-file-standard
+  - kind: DeploymentConfig
+    apiVersion: v1
+    metadata:
+      name: "${SITE_NAME}-wordpress-app"
+      generation: 1
+      labels:
+        app: "${SITE_NAME}-wordpress"
+      annotations: {}
+    spec:
+      strategy:
+        type: Rolling
+        rollingParams:
+          updatePeriodSeconds: 1
+          intervalSeconds: 1
+          timeoutSeconds: 600
+          maxUnavailable: 25%
+          maxSurge: 25%
+        resources: {}
+        activeDeadlineSeconds: 21600
+      triggers:
+        - type: ConfigChange
+        - type: ImageChange
+          imageChangeParams:
+            automatic: true
+            containerNames:
+              - "${SITE_NAME}-wordpress-app"
+            from:
+              kind: ImageStreamTag
+              namespace: "${IS_NAMESPACE}"
+              name: "${IS_NAME}:${IS_VERSION}"
+      replicas: "${{REPLICA_MIN}}"
+      revisionHistoryLimit: 10
+      test: false
+      selector:
+        app: "${SITE_NAME}-wordpress"
+        deploymentconfig: "${SITE_NAME}-wordpress-app"
+      template:
+        metadata:
+          labels:
+            app: "${SITE_NAME}-wordpress"
+            deploymentconfig: "${SITE_NAME}-wordpress-app"
+          annotations: {}
+        spec:
+          volumes:
+            - name: "${SITE_NAME}-wordpress-app-upload"
+              persistentVolumeClaim:
+                claimName: "${SITE_NAME}-wordpress-app-upload"
+            - name: "${SITE_NAME}-wordpress-app-config"
+              persistentVolumeClaim:
+                claimName: "${SITE_NAME}-wordpress-app-config"
+            - name: "${SITE_NAME}-wordpress-app-plugins"
+              persistentVolumeClaim:
+                claimName: "${SITE_NAME}-wordpress-app-plugins"
+          containers:
+            - name: "${SITE_NAME}-wordpress-app"
+              image: " "
+              command: ["/bin/sh"]
+              args: ["-c", "docker-entrypoint.sh apache2-foreground"]
+              ports:
+                - containerPort: 8080
+                  protocol: TCP
+                - containerPort: 8443
+                  protocol: TCP
+              env:
+                - name: ADMIN_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: "${SITE_NAME}-wordpress-app"
+                      key: admin-user
+                - name: ADMIN_NAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: "${SITE_NAME}-wordpress-app"
+                      key: admin-name
+                - name: ADMIN_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: "${SITE_NAME}-wordpress-app"
+                      key: admin-password
+                - name: ADMIN_EMAIL
+                  valueFrom:
+                    secretKeyRef:
+                      name: "${SITE_NAME}-wordpress-app"
+                      key: admin-email
+                - name: DB_TYPE
+                  value: "${DB_TYPE}"
+                - name: POSTGRESQL_USERNAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: "${SITE_NAME}-wordpress-postgresql"
+                      key: database-user
+                - name: POSTGRESQL_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: "${SITE_NAME}-wordpress-postgresql"
+                      key: database-password
+                - name: POSTGRESQL_DB_NAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: "${SITE_NAME}-wordpress-postgresql"
+                      key: database-name
+                - name: POSTGRESQL_DB_HOST
+                  value: "${SITE_NAME}-wordpress-postgresql"
+                - name: POSTGRESQL_PORT
+                  value: "5432"
+              resources:
+                limits:
+                  cpu: "${CPU_LIMIT}"
+                  memory: "${MEMORY_LIMIT}"
+                requests:
+                  cpu: "${CPU_REQUEST}"
+                  memory: "${MEMORY_REQUEST}"
+              volumeMounts:
+                - name: "${SITE_NAME}-wordpress-app-upload"
+                  mountPath: "/var/www/html/upload"
+                - name: "${SITE_NAME}-wordpress-app-config"
+                  mountPath: "/var/www/html/config"
+                - name: "${SITE_NAME}-wordpress-app-plugins"
+                  mountPath: "/var/www/html/plugins"
+              livenessProbe:
+                httpGet:
+                  path: "/"
+                  port: 8080
+                  scheme: HTTP
+                initialDelaySeconds: 60
+                timeoutSeconds: 5
+                periodSeconds: 30
+                successThreshold: 1
+                failureThreshold: 3
+              readinessProbe:
+                httpGet:
+                  path: "/"
+                  port: 8080
+                  scheme: HTTP
+                initialDelaySeconds: 30
+                timeoutSeconds: 5
+                periodSeconds: 30
+                successThreshold: 1
+                failureThreshold: 10
+              terminationMessagePath: "/dev/termination-log"
+              terminationMessagePolicy: File
+              imagePullPolicy: Always
+          restartPolicy: Always
+          terminationGracePeriodSeconds: 30
+          dnsPolicy: ClusterFirst
+          securityContext: {}
+          schedulerName: default-scheduler
+  - apiVersion: autoscaling/v1
+    kind: HorizontalPodAutoscaler
+    metadata:
+      name: "${SITE_NAME}-wordpress-app"
+      labels:
+        app: "${SITE_NAME}-wordpress"
+    spec:
+      maxReplicas: "${{REPLICA_MAX}}"
+      minReplicas: "${{REPLICA_MIN}}"
+      scaleTargetRef:
+        apiVersion: apps.openshift.io/v1
+        kind: DeploymentConfig
+        name: "${SITE_NAME}-wordpress-app"
+      targetCPUUtilizationPercentage: 95
+  - kind: Service
+    apiVersion: v1
+    metadata:
+      name: "${SITE_NAME}-wordpress-app"
+      labels:
+        app: "${SITE_NAME}-wordpress"
+      annotations:
+        description: Exposes and load balances the application pods
+    spec:
+      ports:
+        - name: web
+          protocol: TCP
+          port: 8080
+          targetPort: 8080
+      selector:
+        app: "${SITE_NAME}-wordpress"
+        deploymentconfig: "${SITE_NAME}-wordpress-app"
+      type: ClusterIP
+      sessionAffinity: None
+    status:
+      loadBalancer: {}
+  - kind: Route
+    apiVersion: v1
+    metadata:
+      name: "${SITE_NAME}-wordpress-app"
+      creationTimestamp:
+      labels:
+        app: "${SITE_NAME}-wordpress"
+    spec:
+      host: "${SITE_NAME}-wordpress.apps.silver.devops.gov.bc.ca"
+      to:
+        kind: Service
+        name: "${SITE_NAME}-wordpress-app"
+        weight: 100
+      port:
+        targetPort: web
+      tls:
+        termination: edge
+      wildcardPolicy: None
