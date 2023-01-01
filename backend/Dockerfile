@@ -45,7 +45,7 @@ RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSI
 COPY gdx-config/config-pgsql.php /tmp
 
 RUN set -x; \
-    wget "$GITHUB_REPO/releases/tag/$GITHUB_TAG.tar.gz" \
+    wget "$GITHUB_REPO/archive/refs/tags/$GITHUB_TAG.tar.gz" \
     && tar -zxf $GITHUB_TAG.tar.gz --strip-components=1 \
     && rm $GITHUB_TAG.tar.gz \
     && mkdir -p /var/lime/application/config \
