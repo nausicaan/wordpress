@@ -50,6 +50,6 @@ if ($driver === 'mysql') {
 
 if (!$numTables) { // Connected but no tables found
     exit("NOINSTALL");
-} else { // Connected and found wordpress (lime_%) tables
+} else { // Connected and found wordpress (wp_%) tables
     exit("INSTALL");
 }

@@ -15,19 +15,19 @@ if [[ "$1" == apache2* ]] || [ "$1" == php-fpm ]; then
 
     if ! [ -e application/config/config.php ]; then
         echo >&2 "Copying default container default config files into config volume..."
-        cp -dR /var/lime/application/config/* application/config
+        cp -dR /var/wp/application/config/* application/config
         echo >&2 "Enabling DB-specific config file ..."
         cp application/config/config-$DB_TYPE.php application/config/config.php
     fi
 
     if ! [ -e plugins/index.html ]; then
         echo >&2 "No index.html file in plugins dir in $(pwd) Copying defaults..."
-        cp -dR /var/lime/plugins/* plugins
+        cp -dR /var/wp/plugins/* plugins
     fi
 
     if ! [ -e upload/index.html ]; then
         echo >&2 "No index.html file upload dir in $(pwd) Copying defaults..."
-        cp -dR /var/lime/upload/* upload
+        cp -dR /var/wp/upload/* upload
     fi
 
 	DBSTATUS=$(TERM=dumb php -f /usr/local/bin/gdx-check-install.php)

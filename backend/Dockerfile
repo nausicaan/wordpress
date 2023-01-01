@@ -48,15 +48,15 @@ RUN set -x; \
     wget "$GITHUB_REPO/archive/refs/tags/$GITHUB_TAG.tar.gz" \
     && tar -zxf $GITHUB_TAG.tar.gz --strip-components=1 \
     && rm $GITHUB_TAG.tar.gz \
-    && mkdir -p /var/lime/application/config \
-    && mkdir -p /var/lime/upload \
-    && mkdir -p /var/lime/plugins \
+    && mkdir -p /var/wp/application/config \
+    && mkdir -p /var/wp/upload \
+    && mkdir -p /var/wp/plugins \
     && cp /tmp/config-pgsql.php /var/www/html/application/config/ \
     && chown -R default_user:root /var/www/html \
     && chmod -R g+w /var/www/html \
-    && cp -dpR /var/www/html/application/config/* /var/lime/application/config \
-    && cp -dpR /var/www/html/upload/* /var/lime/upload \
-    && cp -dpR /var/www/html/plugins/* /var/lime/plugins
+    && cp -dpR /var/www/html/application/config/* /var/wp/application/config \
+    && cp -dpR /var/www/html/upload/* /var/wp/upload \
+    && cp -dpR /var/www/html/plugins/* /var/wp/plugins
 
 #Set PHP defaults for wordpress (allow bigger uploads)
 RUN { \

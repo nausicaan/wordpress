@@ -39,7 +39,7 @@ return array(
                         'username' => $dbusername,
                         'password' => $dbpassword,
                         'charset' => 'utf8',
-                        'tablePrefix' => 'lime_',
+                        'tablePrefix' => 'wp_',
                 ),
                 /*
                 Uncomment the following lines if you need table-based sessions.
