@@ -15,7 +15,7 @@ parameters:
   - description: Version of wordpress image to be used (e.g. v.3.16.1).
     displayName: Version of wordpress
     name: IS_VERSION
-    value: 5.4.15
+    value: 6.1.1
   - description: The short-name of the WordPress Service, lower-case with hyphen.
     displayName: wordpress Acronym
     name: SITE_NAME
@@ -48,13 +48,13 @@ parameters:
     name: DB_TYPE
     value: pgsql
   - name: CPU_LIMIT
-    value: 200m
+    value: 300m
   - name: MEMORY_LIMIT
-    value: 512Mi
+    value: 1Gi
   - name: CPU_REQUEST
-    value: 50m
+    value: 150m
   - name: MEMORY_REQUEST
-    value: 200Mi
+    value: 500Mi
   - name: REPLICA_MIN
     value: "2"
   - name: REPLICA_MAX
