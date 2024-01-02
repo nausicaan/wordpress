@@ -1,0 +1,7 @@
+# no not deploy these files
+/.gitattributes	export-ignore
+/.gitignore	export-ignore
+
+# do not try to merge these files
+composer.lock -diff
+composer-dev.lock -diff

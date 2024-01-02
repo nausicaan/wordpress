@@ -1,0 +1,58 @@
+services:
+  mariadb:
+    image: mariadb:10.11
+    container_name: mariadb-container
+    env_file: .env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mariadb_data:/var/lib/mysql
+
+  nginx:
+    image: nginx:1.25.3
+    container_name: nginx-container
+    depends_on:
+      - wordpress
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx:/etc/nginx/conf.d/
+      - wordpress_data:/srv/www/localhost/
+    working_dir: /srv/www/localhost/web
+
+  wordpress:
+    build:
+      dockerfile: Dockerfile
+    container_name: wordpress-container
+    depends_on:
+      - mariadb
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      WORDPRESS_DB_HOST: ${DB_HOST}
+      WORDPRESS_DB_USER: ${DB_USER}
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
+      WORDPRESS_DB_NAME: ${DB_NAME}
+    volumes:
+      - wordpress_data:/srv/www/localhost/
+    working_dir: /srv/www/localhost/web
+
+  redis:
+    image: redis:7.2.3
+    container_name: redis-container
+    depends_on:
+      - wordpress
+    # volumes:
+    #   - ./redis.conf:/usr/local/etc/redis/redis.conf
+    #   - wordpress_data:/data/
+    volumes:
+      - redis_data:/data/
+
+volumes:
+  redis_data:
+  mariadb_data:
+  wordpress_data:
