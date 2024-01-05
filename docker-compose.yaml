@@ -18,7 +18,7 @@ services:
       - wordpress
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "1024:80"
     volumes:
       - ./nginx:/etc/nginx/conf.d/
       - wordpress_data:/srv/www/localhost/
@@ -39,20 +39,18 @@ services:
       WORDPRESS_DB_NAME: ${DB_NAME}
     volumes:
       - wordpress_data:/srv/www/localhost/
-    working_dir: /srv/www/localhost/web
+    working_dir: /srv/www/localhost
 
   redis:
     image: redis:7.2.3
     container_name: redis-container
     depends_on:
       - wordpress
-    # volumes:
-    #   - ./redis.conf:/usr/local/etc/redis/redis.conf
-    #   - wordpress_data:/data/
     volumes:
-      - redis_data:/data/
+      # - ./redis.conf:/usr/local/etc/redis/redis.conf
+      - wordpress_data:/data/
 
 volumes:
-  redis_data:
+  # redis_data:
   mariadb_data:
   wordpress_data:

@@ -26,4 +26,6 @@ RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli
 # Latest release
 COPY --from=composer/composer:latest-bin /composer /usr/bin/composer
 
-# RUN wp core install --allow-root --path=/srv/www/localhost/ --url=http://localhost:8080 --title="DES WordPress" --admin_user=des --admin_password=7ujm,ki8 --admin_email=des@gov.bc.ca
+# RUN wp core install --allow-root --path=/srv/www/localhost/ --url=http://localhost:1024 --title="DES WordPress" --admin_user=des --admin_password=7ujm,ki8 --admin_email=des@gov.bc.ca
+
+RUN useradd -g root -m -u 1001 des
