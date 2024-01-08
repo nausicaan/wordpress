@@ -19,12 +19,12 @@ RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli
 COPY --from=composer/composer:latest-bin /composer /usr/bin/composer
 
 # Install Stunnel
-RUN mkdir -p /etc/stunnel
+# RUN mkdir -p /etc/stunnel
 # ADD stunnel/stunnel.conf /etc/stunnel/stunnel.conf
 # ADD stunnel/start_stunnel.sh /etc/stunnel/start_stunnel.sh
-RUN apt-get update && \ 
-    apt-get -y install stunnel && \ 
-    apt-get -y install net-tools
+# RUN apt-get update && \ 
+#     apt-get -y install stunnel && \ 
+#     apt-get -y install net-tools
 
 # Uprade system components 
 RUN apt-get upgrade -y
