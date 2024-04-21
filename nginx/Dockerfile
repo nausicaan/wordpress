@@ -17,7 +17,7 @@ RUN mkdir -p /var/run/nginx \
 
 # Copy the NGINX configuration files
 ADD staging /usr/share/nginx/html/sites-enabled
-ADD conf.d/default.conf /etc/nginx/conf.d
+ADD default.conf /etc/nginx/conf.d
 ADD nginx.pid /var/run/nginx
 ADD nginx.conf /etc/nginx
 
