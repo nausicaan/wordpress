@@ -1,14 +1,9 @@
----
-title: Creating a WordPress Stack
-description: How to create a fully functioning WordPress Stack with Nginx, MariaDB, and WordPress (including Composer, WP-CLI, and Memcached) using Docker and Quay.
----
-
 # WordPress Stack
 
-Create a fully functioning WordPress Stack with Nginx, MariaDB, and WordPress (including Composer, WP-CLI, and Memcached) using Docker.
+Create a fully functioning WordPress Stack with Nginx, MariaDB, and WordPress ( including Composer and WP-CLI ) using Docker.
 
 ![Stack](stack.webp)
-
+ 
 ## Prerequisites
 
 Applications needed will be:
@@ -23,9 +18,7 @@ Applications needed will be:
 Individually, the images can be built tagged, and pushed to a repo for easy access.
 
 1. docker build -f Dockerfile -t [name] .
-
 2. docker image tag [name]:latest [repo]/[name]:[version]
-
 3. docker push [repo]/[name]:[version]
 
 ### Extras
@@ -40,7 +33,7 @@ DB_ROOT_PASSWORD=''
 DB_HOST=''
 WP_ENV=''
 WP_HOME='https://'
-WP_SITEURL='https://'
+WP_SITEURL='https://wp'
 
 # Generate your keys here: https://roots.io/salts.html
 AUTH_KEY=''
