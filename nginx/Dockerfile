@@ -1,31 +1,32 @@
-FROM nginx:1.25.5
+FROM nginx:1.26.0
 
-# Install the GNU Compiler Collection and create cache directories
+# Install the GNU Compiler Collection
 RUN apt-get update && apt-get install -y \
         gcc mono-mcs \
-    && rm -rf /var/lib/apt/lists/*
-
-# Create the necessary directories
-RUN mkdir -p /var/run/nginx \
-    /var/cache/nginx/client_temp \
-    /var/cache/nginx/proxy_temp \
-    /var/cache/nginx/fastcgi_temp \
-    /var/cache/nginx/scgi_temp \
-    /var/cache/nginx/uwsgi_temp \
-    /usr/share/nginx/html/blocklists \
-    /usr/share/nginx/html/sites-enabled
+    && rm -rf /var/lib/apt/lists/* \
+    && rm  /etc/nginx/conf.d/default.conf \
+    # Create the necessary directories
+    && mkdir -p /var/cache/nginx/client_temp \
+        /var/cache/nginx/proxy_temp \
+        /var/cache/nginx/fastcgi_temp \
+        /var/cache/nginx/scgi_temp \
+        /var/cache/nginx/uwsgi_temp \
+        /etc/nginx/sites-available \
+        /etc/nginx/sites-enabled \
+        /etc/nginx/blocklists \
+    # Claim ownership for the NGINX user
+    && chown -R nginx:nginx /etc/nginx
 
 # Copy the NGINX configuration files
-ADD staging /usr/share/nginx/html/sites-enabled
-ADD default.conf /etc/nginx/conf.d
-ADD nginx.pid /var/run/nginx
+ADD wordpress.conf /etc/nginx/sites-available
+ADD nginx.pid /var/log/nginx
 ADD nginx.conf /etc/nginx
 
-# Claim ownership for the NGINX user
-RUN chown -R nginx:nginx /etc/nginx
+# Create the symbolic link
+RUN ln -s /etc/nginx/sites-available/wordpress.conf /etc/nginx/sites-enabled/wordpress.conf
 
 # Set the working directory
-WORKDIR /usr/share/nginx/html
+WORKDIR /data
 
 # Switch to the NGINX user
 USER nginx

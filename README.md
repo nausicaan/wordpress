@@ -15,7 +15,7 @@ Applications needed will be:
 
 ## Build
 
-Individually, the images can be built tagged, and pushed to a repo for easy access.
+Individually, the images can be built, tagged, and pushed to a repo for easy access.
 
 1. docker build -f Dockerfile -t [name] .
 2. docker image tag [name]:latest [repo]/[name]:[version]
@@ -52,4 +52,16 @@ To create containers all at once, simply execute the docker compose file:
 
 ```bash
 docker compose up -d
+```
+
+Then create the bedrock project with this command:
+
+```bash
+composer create-project roots/bedrock
+```
+
+Finally, copy the .env file to bedrock folder and run:
+
+```bash
+wp core install --url=http://localhost:8080 --title="DES Staging" --admin_user=mdb_user --admin_password="VQN8zVx8xGZ77sW" --admin_email=des@gov.bc.ca --allow-root
 ```

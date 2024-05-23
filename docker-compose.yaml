@@ -1,32 +1,9 @@
 name: gdx
 
 services:
-  proxy:
-    container_name: nginx
-    image: docker.io/nausicaan/nginx:1.25.5
-    ports:
-      - "8080:80"
-    volumes:
-      - wp_data:/usr/share/nginx/html
-  web:
-    container_name: wordpress
-    image: docker.io/nausicaan/wordpress:8.2-fpm
-    environment:
-      - MARIADB_DATABASE=${DB_NAME}
-      - MARIADB_USER=${DB_USER}
-      - MARIADB_PASSWORD=${DB_PASSWORD}
-      - MARIADB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
-      - MARIADB_HOST=${DB_HOST}
-      - WP_ENV=${WP_ENV}
-      - WP_HOME=${WP_HOME}
-      - WP_SITEURL=${WP_SITEURL}
-    ports:
-      - "9000:9000"
-    volumes:
-      - wp_data:/usr/share/nginx/html
   database:
-    container_name: mariadb
-    image: docker.io/nausicaan/mariadb:10.11
+    container_name: ops-mariadb
+    image: mariadb:latest
     environment:
       - MARIADB_DATABASE=${DB_NAME}
       - MARIADB_USER=${DB_USER}
@@ -36,6 +13,18 @@ services:
       - MARIADB_PREFIX=${DB_PREFIX}
     volumes:
       - db_data:/var/lib/mysql
+  cms:
+    container_name: ops-wordpress
+    image: wordpress:latest
+    volumes:
+      - wp_data:/data
+  proxy:
+    container_name: ops-nginx
+    image: nginx:latest
+    ports:
+      - "8080:80"
+    volumes:
+      - wp_data:/data
 volumes:
   db_data:
   wp_data:
