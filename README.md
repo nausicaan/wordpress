@@ -23,7 +23,7 @@ Individually, the images can be built, tagged, and pushed to a repo for easy acc
 
 ### Extras
 
-MariaDB requires a .env file with the following values:
+MariaDB requires a `.env` file with the following values:
 
 ```bash
 DB_NAME=''
@@ -32,8 +32,8 @@ DB_PASSWORD=''
 DB_ROOT_PASSWORD=''
 DB_HOST=''
 WP_ENV=''
-WP_HOME='https://'
-WP_SITEURL='https://wp'
+WP_HOME='http://'
+WP_SITEURL='http://wp'
 
 # Generate your keys here: https://roots.io/salts.html
 AUTH_KEY=''
@@ -63,5 +63,5 @@ composer create-project roots/bedrock
 Finally, copy the .env file to bedrock folder and run:
 
 ```bash
-wp core install --url=http://localhost:8080 --title="DES Staging" --admin_user=mdb_user --admin_password="VQN8zVx8xGZ77sW" --admin_email=des@gov.bc.ca --allow-root
+wp core install --url="{WP_HOME}" --title="{PAGE TITLE}" --admin_user="{USERNAME}" --admin_password="{PASSWORD}" --admin_email="{EMAIL}" --allow-root
 ```

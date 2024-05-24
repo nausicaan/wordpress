@@ -1,30 +1,30 @@
 name: gdx
 
 services:
-  database:
-    container_name: ops-mariadb
-    image: mariadb:latest
-    environment:
-      - MARIADB_DATABASE=${DB_NAME}
-      - MARIADB_USER=${DB_USER}
-      - MARIADB_PASSWORD=${DB_PASSWORD}
-      - MARIADB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
-      - MARIADB_HOST=${DB_HOST}
-      - MARIADB_PREFIX=${DB_PREFIX}
-    volumes:
-      - db_data:/var/lib/mysql
-  cms:
-    container_name: ops-wordpress
-    image: wordpress:latest
-    volumes:
-      - wp_data:/data
-  proxy:
-    container_name: ops-nginx
-    image: nginx:latest
-    ports:
-      - "8080:80"
-    volumes:
-      - wp_data:/data
+    database:
+        container_name: ops-mariadb
+        image: mariadb:latest
+        environment:
+            - MARIADB_DATABASE=${DB_NAME}
+            - MARIADB_USER=${DB_USER}
+            - MARIADB_PASSWORD=${DB_PASSWORD}
+            - MARIADB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+            - MARIADB_HOST=${DB_HOST}
+            - MARIADB_PREFIX=${DB_PREFIX}
+        volumes:
+            - db_data:/var/lib/mysql
+    cms:
+        container_name: ops-wordpress
+        image: wordpress:latest
+        volumes:
+            - wp_data:/data
+    proxy:
+        container_name: ops-nginx
+        image: nginx:latest
+        ports:
+            - "8080:80"
+        volumes:
+            - wp_data:/data
 volumes:
-  db_data:
-  wp_data:
+    db_data:
+    wp_data:
