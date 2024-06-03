@@ -1,4 +1,4 @@
-FROM nginx:1.26.0
+FROM nginx:1.27.0
 
 # Install the GNU Compiler Collection
 RUN apt-get update && apt-get install -y \
@@ -14,16 +14,23 @@ RUN apt-get update && apt-get install -y \
         /etc/nginx/sites-available \
         /etc/nginx/sites-enabled \
         /etc/nginx/blocklists \
+        /etc/nginx/snippets \
+        /srv/http/default/snippets \
     # Claim ownership for the NGINX user
+    && chown -R nginx:nginx /usr/share/nginx \
     && chown -R nginx:nginx /etc/nginx
 
 # Copy the NGINX configuration files
 ADD wordpress.conf /etc/nginx/sites-available
+ADD error.conf /srv/http/default/snippets
+ADD pages.conf /srv/http/default/snippets
 ADD nginx.pid /var/log/nginx
 ADD nginx.conf /etc/nginx
 
 # Create the symbolic link
 RUN ln -s /etc/nginx/sites-available/wordpress.conf /etc/nginx/sites-enabled/wordpress.conf
+RUN ln -s /srv/http/default/snippets/error.conf /etc/nginx/snippets/error.conf
+RUN ln -s /srv/http/default/snippets/pages.conf /etc/nginx/snippets/pages.conf
 
 # Set the working directory
 WORKDIR /data

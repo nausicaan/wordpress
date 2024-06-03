@@ -1,6 +1,6 @@
 # WordPress Stack
 
-Create a fully functioning WordPress Stack with Nginx, MariaDB, and WordPress ( including Composer and WP-CLI ) using Docker.
+Create a fully functioning WordPress Stack with NGiNX, MariaDB, and WordPress ( including Composer and WP-CLI ) using Docker.
 
 ![Stack](stack.webp)
  
