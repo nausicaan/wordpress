@@ -2,7 +2,7 @@ name: gdx
 
 services:
     database:
-        container_name: ops-mariadb
+        container_name: mariadb
         image: mariadb:latest
         environment:
             - MARIADB_DATABASE=${DB_NAME}
@@ -14,12 +14,12 @@ services:
         volumes:
             - db_data:/var/lib/mysql
     cms:
-        container_name: ops-wordpress
+        container_name: wordpress
         image: wordpress:latest
         volumes:
             - wp_data:/data
     proxy:
-        container_name: ops-nginx
+        container_name: nginx
         image: nginx:latest
         ports:
             - "8080:8080"
